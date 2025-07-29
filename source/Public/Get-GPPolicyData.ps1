@@ -1,14 +1,16 @@
 function Get-GPPolicyData {
     <#
     .SYNOPSIS
-    Parses Chrome Group Policy XML files and extracts policy information.
+    Parses Group Policy XML files and extracts policy information.
 
     .DESCRIPTION
-    This function reads a Chrome Group Policy XML file and extracts relevant policy information
-    into a structured format for further processing.
+    This function retrieves policy data from a specified Group Policy Object (GPO) by name. It can filter policies based on configuration type (Computer, User, or All). The function returns a collection of policy objects containing relevant details.
 
-    .PARAMETER XmlPath
-    Parameter description
+    .PARAMETER GPOName
+    The name of the Group Policy Object from which to retrieve policy data.
+
+    .PARAMETER Configuration
+    Specifies the type of policies to retrieve. Valid values are "Computer", "User", or "All". If "All" is specified, both Computer and User policies will be returned.
     
     .EXAMPLE
     # Get policy data from a GPO by name
@@ -19,6 +21,12 @@ function Get-GPPolicyData {
     # Get all enabled policies
     $computerPolicies = Get-GPPolicyData -GPOName "Your GPO Name"
     $computerPolicies | Where-Object State -eq 'Enabled'
+
+    .EXAMPLE
+    # Compare two GPOs
+    $gpo1Policies = Get-GPPolicyData -GPOName "GPO1"
+    $gpo2Policies = Get-GPPolicyData -GPOName "GPO2"
+    Compare-Object -ReferenceObject $gpo1Policies -DifferenceObject $gpo2Policies -Property Name, State, Category
 
     .NOTES
     General notes
@@ -34,9 +42,6 @@ function Get-GPPolicyData {
     )
 
     [xml]$xmlContent = Get-GPOReport -Name $GPOName -ReportType Xml
-    
-
-    $gponame = $xmlContent.gpo.Name
 
     $policies = switch ($Configuration) {
         "Computer" {
@@ -50,9 +55,6 @@ function Get-GPPolicyData {
             $xmlContent.gpo.Computer.ExtensionData.Extension.Policy + $xmlContent.gpo.User.ExtensionData.Extension.Policy
         }
     }
-
-    # display user or computer from the XML path
-
 
     $policyObjects = foreach ($policy in $policies) {
         [PSCustomObject]@{
