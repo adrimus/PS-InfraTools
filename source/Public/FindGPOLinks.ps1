@@ -1,7 +1,3 @@
-#Requires -Modules GroupPolicy
-#Requires -Version 3.0
-#Requires -RunAsAdministrator
-
 function Get-GPOLinks {
     <#
     .SYNOPSIS
