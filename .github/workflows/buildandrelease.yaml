@@ -22,7 +22,9 @@ jobs:
         uses: gittools/actions/gitversion/execute@v0
 
       - name: Show calculated version
-        run: echo "GitVersion calculated version: ${{ steps.gitversion.outputs.fullSemVer }}"
+        shell: pwsh
+        run: |
+          Write-host "GitVersion calculated version: ${{ steps.gitversion.outputs.NuGetVersionV2 }}"
 
       - name: Install Build Module
         shell: pwsh
@@ -32,7 +34,7 @@ jobs:
         shell: pwsh
         run: |
           # The -OutputPath is important for the next step
-          Build-Module -Path $PSScriptRoot -Version ${{ steps.gitversion.outputs.fullSemVer }} -OutputPath ./Output
+          Build-Module -Path $PSScriptRoot -Version ${{ steps.gitversion.outputs.NuGetVersionV2 }} -OutputPath ./Output
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
