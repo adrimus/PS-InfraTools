@@ -12,6 +12,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v0
+        with:
+          versionSpec: '5.x'
+
+      - name: Run GitVersion
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@v0
+
+      - name: Show calculated version
+        run: echo "GitVersion calculated version: ${{ steps.gitversion.outputs.fullSemVer }}"
+
       - name: Install Build Module
         shell: pwsh
         run: Install-Module ModuleBuilder -Force
@@ -19,7 +31,8 @@ jobs:
       - name: Build Module
         shell: pwsh
         run: |
-          Build-Module $PSScriptRoot
+          # The -OutputPath is important for the next step
+          Build-Module -Path $PSScriptRoot -Version ${{ steps.gitversion.outputs.fullSemVer }} -OutputPath ./Output
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
