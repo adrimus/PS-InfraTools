@@ -30,16 +30,23 @@ function Get-ADBitlockerRecoveryPwd {
 
     # Query Active Directory for BitLocker recovery information
     $splatParams = @{
-        Filter      = {objectClass -eq 'msFVE-RecoveryInformation'}
-        SearchBase  = $computerDN
-        Properties  = 'msFVE-RecoveryPassword'
+        Filter     = { objectClass -eq 'msFVE-RecoveryInformation' }
+        SearchBase = $computerDN
+        Properties = 'whenCreated', 'msFVE-RecoveryPassword', 'ObjectGUID', 'CN'
     }
     $recoveryInfo = Get-ADObject @splatParams
 
     if ($recoveryInfo) {
         # Output the recovery password if found
-        $recoveryInfo | Select-Object -Property msFVE-RecoveryPassword
-    } else {
+        $recoveryInfo | ForEach-Object {
+            [PSCustomObject]@{
+                PasswordID       = Get-BitlockerGuidFromString $_.CN
+                RecoveryPassword = $_.'msFVE-RecoveryPassword'
+                WhenCreated      = $_.whenCreated
+            }
+        }
+    }
+    else {
         # Inform the user if no recovery information is found
         Write-Host "No BitLocker recovery information found for $ComputerName"
     }
